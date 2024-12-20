@@ -1,10 +1,14 @@
 # GameOfNodes
 # My Hybrid-Cloud Homelab Infrastructure Project
+
 A secure, fully documented hybrid-cloud homelab showcasing on-prem storage, virtualization, Kubernetes (K3s), SSO with Authentik, Cloudflare Zero Trust, and Tailscale overlay networking. This repository includes architecture diagrams, IaC configurations, and best practices for encryption, backup, and performance tuning.
 
 **Author:** Mohammed Sharfuddin Shawon.
+
 **Role:** Architect, Developer, and Administrator.
+
 **Skills Demonstrated:** Systems Administration, Network Engineering, Kubernetes, Cloud Integration, Automation, Security, DevOps Tooling.
+
 **Technologies:** On-Prem Servers (TrueNAS SCALE, Proxmox, Docker), Ubuntu Linux, K3s, Oracle Cloud, Tailscale (Headscale), Authentik, Cloudflare Zero Trust, Terraform, Ansible, Prometheus, Grafana
 
 ---
@@ -46,7 +50,9 @@ A secure, fully documented hybrid-cloud homelab showcasing on-prem storage, virt
 This project demonstrates a comprehensive hybrid-cloud homelab infrastructure that integrates on-premise servers with public cloud services. The environment is designed for high availability, security, and flexibility, supporting practical implementations of modern IT and DevOps principles. By leveraging TrueNAS SCALE for storage, Proxmox and K3s for virtualization and orchestration, Authentik and Cloudflare Zero Trust for single sign-on (SSO) and identity management, and Tailscale (Headscale) for secure overlay networking, this setup ensures that all data flowing in, out, and within the homelab remains fully encrypted at rest and in transit.
 
 ### Key Considerations
-Throughout the creation of my hybrid-cloud homelab, I consistently balanced three key considerations. First, I was dedicated to safeguarding my data and securing the home network environment, integrating multiple layers of encryption, authentication, and isolation. Second, as a full-time student, I had to be mindful of cost, opting for budget-friendly, second-hand hardware and low-cost solutions that didn’t compromise on learning potential. Finally, I prioritized energy efficiency, favoring low-power components and careful resource allocation to ensure that ongoing operational costs remained manageable while still meeting my performance and reliability goals.
+
+*Throughout the creation of my hybrid-cloud homelab, I consistently balanced three key considerations. First, I was dedicated to safeguarding my data and securing the home network environment, integrating multiple layers of encryption, authentication, and isolation. Second, as a full-time student, I had to be mindful of cost, opting for budget-friendly, second-hand hardware and low-cost solutions that didn’t compromise on learning potential. Finally, I prioritized energy efficiency, favoring low-power components and careful resource allocation to ensure that ongoing operational costs remained manageable while still meeting my performance and reliability goals.*
+
 ---
 
 ## Environment Details
@@ -59,11 +65,11 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
    - **Storage:** 
      - OS: 2x 128GB SATA SSDs (mirrored)  
      - Cache: 2x 1TB NVMe SSDs for caching  
-     - Data: 4x 4TB SAS drives for main storage  
+     - Data: 4x 4TB SAS drives in RaidZ2 for main storage  
    - **Use Cases:** Centralized data storage (NFS), media streaming, automated encrypted backups.
 
 2. **HP EliteDesk 800 G2 & G3 (Docker Servers):**  
-   - **G2:** Intel Core i5-6500T, 16GB RAM, 256GB SSD  
+   - **G2:** Intel Core i5-6600, 16GB RAM, 256GB SSD  
    - **G3:** Intel Core i3-8100T, 16GB RAM, 256GB SSD  
    - **Use Cases:** Hosting critical family services (e.g., password manager) behind multiple authentication layers.
 
@@ -91,7 +97,7 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
 - **Oracle Cloud Always Free Tier VPS:**  
   - Runs Authentik for SSO and Headscale for secure, encrypted overlay networking.
 - **Additional VPS for Monitoring & Alerts:**  
-  - Centralized monitoring (prometheus/grafana) and Ntfy service for real-time infrastructure notifications.
+  - Centralized monitoring and Ntfy service for real-time infrastructure notifications.
 
 ---
 
@@ -101,7 +107,7 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
 
 - **On-Prem:** TrueNAS for storage, EliteDesks for critical services, Proxmox cluster evolving into K3s HA cluster.
 - **Cloud:** Oracle Cloud VPS for SSO and Headscale; additional VPS for monitoring multiple sites.
-- **Overlay Networking:** Headscale (Tailscale) creates an end-to-end encrypted mesh, linking on-prem and cloud resources securely.
+- **Overlay Networking:** Headscale (selhosted Tailscale) creates an end-to-end encrypted mesh VPM, linking on-prem and cloud resources securely.
 - **SSO & Access Control:** Authentik SSO integrated with Cloudflare Zero Trust ensures centralized authentication and controlled public access.
 
 ### Network Diagrams
@@ -112,15 +118,15 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
      |     Home Network     |                          |  Oracle Cloud VPS (SSO)  |
      | (Local LAN, VLANs)   |                          | Authentik + Headscale    |
      +-----------+----------+                          +------------+-------------+
-                 |                                              |
-          +------v--------+         +-------------------------+  |
+                 |                                                |
+          +------v--------+          +-------------------------+  |
           | TrueNAS SCALE | <------> | HP EliteDesks (G2,G3)   |  |
           |   Storage     | NFS      | Critical Home Services  |  |
           +-------+-------+          +------------+------------+  |
-                  |                            |                |
-                  |                            |                |
-           +------v-------+  Tailscale/         |                |
-           |  Proxmox     |  Headscale Overlay  <----------------+
+                  |                              |                |
+                  |                              |                |
+           +------v-------+  Tailscale/          |                |
+           |  Proxmox     |  Headscale Overlay   <----------------+
            |  Cluster     | (Future K3s HA)                     
            | (3x Wyse 5070)                                      
            +------^-------+
@@ -129,7 +135,7 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
          +--------v--------+         +----------------------------+
          |   Internet      |         | Monitoring VPS (Ntfy)      |
          |    Gateway      | <-------> Multi-Site Monitoring      |
-         +--------+--------+          -----------------------------+
+         +--------+--------+         -----------------------------+
                   |
          +--------v---------+
          | Cloudflare Zero  |
@@ -140,8 +146,8 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
 
 ### Data Flow Explanation
 
-- **Public Services:**  
-  - Accessed via Cloudflare-proxied domains, protected by Cloudflare Zero Trust integrated with Authentik SSO.  
+- **Public/Family Services:**  
+  - Accessed via Cloudflared Tunnel and proxied domains, protected by Cloudflare Zero Trust integrated with Authentik SSO.  
   - Users authenticate once to gain access to multiple services, minimizing friction and improving security.
   
 - **Private Services (Confidential Data):**  
@@ -170,7 +176,7 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
 
 - **Private Services via VPN:**  
   - Critical services are not publicly exposed; their DNS points to private IPs accessible only through the Tailscale-based VPN.  
-  - No open ports or public IP exposure, and multiple layers of authentication ensure only authorized users gain access.
+  - No open ports or home IP exposure, and multiple layers of authentication ensure only authorized users gain access.
 
 ### Encryption & Isolation
 
@@ -179,7 +185,7 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
   - Tailscale (Headscale) ensures end-to-end encryption between all homelab nodes and cloud services.
   
 - **Encryption at Rest:**  
-  - All data stored locally (TrueNAS) and remotely (off-site backups) is encrypted.  
+  - All data stored locally (TrueNAS) and remotely (off-site and cloud backups) is encrypted.  
   - This includes media, critical services data, configuration files, and backup archives.
 
 - **Network Segmentation:**  
@@ -199,13 +205,13 @@ Throughout the creation of my hybrid-cloud homelab, I consistently balanced thre
 
 ### Load Testing & Benchmarking
 
-- **Current State:** Family-critical services running at stable performance; planned load testing as K3s cluster matures.
+- **Current State:** Family-critical services running at stable performance; planned load testing as K3s cluster is implemented.
 - **Future Tools:** JMeter or Locust to simulate workloads and assess scaling strategies.
 
 ### Autoscaling & Capacity Planning
 
 - **K3s HA (Upcoming):** Supports horizontal scaling of containerized workloads.
-- **Proxmox Flexibility:** Quickly adjust VM or container resources as demands change.
+- **Proxmox:** Quickly adjust VM or container resources as demands change.
 - **Hybrid Approach:** On-prem stable resources combined with cloud elasticity to handle spikes and distribute workloads.
 
 ### Cost Analysis & Optimization
